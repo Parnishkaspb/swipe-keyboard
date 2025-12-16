@@ -33,6 +33,11 @@ class SimpleKeyboardSwipe {
         module.swipeTolerance = 30;
         module.stoppedTime = 50;
         module.repeatResetTime = 200;
+
+        // Новые переменные для хранения данных
+        module.currentStroke = []; // Текущий штрих (массив точек)
+        module.allStrokes = []; // Все штрихи (массив массивов)
+        module.currentStrokeKey = ""; // Ключ для текущего штриха
       };
 
       module.initEvents = () => {
@@ -86,6 +91,8 @@ class SimpleKeyboardSwipe {
         module.canvasHandler.canvas.classList.add("swipe-mousedown");
         module.canvasHandler.canvas.classList.remove("swipe-mouseup");
 
+        module.startNewStroke(e);
+
         module.isMouseHold = true;
         module.holdTimeout = setTimeout(function() {
           if (module.isMouseHold) {
@@ -96,6 +103,10 @@ class SimpleKeyboardSwipe {
       };
 
       module.onMouseUp = () => {
+        if (module.currentStroke.length > 0) {
+          module.finishCurrentStroke();
+        }
+
         module.isMouseHold = false;
         module.swipeStart = false;
         module.canvasHandler.clear();
@@ -116,6 +127,10 @@ class SimpleKeyboardSwipe {
       };
 
       module.onMouseOut = () => {
+        if (module.currentStroke.length > 0) {
+          module.finishCurrentStroke();
+        }
+
         module.swipeStart = false;
         module.canvasHandler.clear();
         module.isMouseInCanvas = false;
@@ -139,6 +154,8 @@ class SimpleKeyboardSwipe {
             module.currY
           );
 
+          module.addPointToStroke(e);
+
           module.mouseStopped = setTimeout(() => {
             module.mouseStopped = true;
             module.handleInteraction(e);
@@ -146,6 +163,63 @@ class SimpleKeyboardSwipe {
         }
 
         module.canvasHandler.canvas.classList.add("swipe-mousemove");
+      };
+
+      module.startNewStroke = e => {
+        module.currentStroke = [];
+        module.currentStrokeKey = this.generateStrokeKey();
+
+        let element = document.elementFromPoint(e.clientX, e.clientY);
+        if (element) {
+          let label = element.getAttribute("data-skbtn");
+          if (label) {
+            module.currentStrokeKey = label;
+          }
+        }
+
+        module.addPointToStroke(e);
+      };
+
+      module.addPointToStroke = e => {
+        const point = {
+          x: module.currX,
+          y: module.currY,
+          timestamp: Date.now()
+        };
+        module.currentStroke.push(point);
+      };
+
+      module.finishCurrentStroke = () => {
+        if (module.currentStroke.length > 0) {
+          const pointsArray = module.currentStroke.map(point => ({
+            x: point.x,
+            y: point.y,
+            t: point.timestamp
+          }));
+
+          console.log(pointsArray);
+
+          module.allStrokes.push(pointsArray);
+
+          module.currentStroke = [];
+          module.currentStrokeKey = "";
+        }
+      };
+
+      module.generateStrokeKey = () => {
+        return `stroke_${Date.now()}_${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
+      };
+
+      module.getAllStrokesData = () => {
+        return module.allStrokes;
+      };
+
+      module.clearAllStrokesData = () => {
+        module.allStrokes = [];
+        module.currentStroke = [];
+        module.currentStrokeKey = "";
       };
 
       module.updateCurrentPosition = e => {
@@ -186,11 +260,7 @@ class SimpleKeyboardSwipe {
 
           if (stagingY) module.yDirection = stagingY;
 
-          if (
-            // For now, tracking only includes swipeStart and wait time
-            //(stagingX || stagingY) &&
-            module.swipeStart
-          ) {
+          if (module.swipeStart) {
             module.handleInteraction(e);
             module.swipeStart = false;
           }

@@ -58,7 +58,9 @@
     "webpack": "^5.97.1",
     "webpack-cli": "^6.0.1"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.22.0"
+  },
   "jest": {
     "testEnvironment": "jest-environment-jsdom-fourteen",
     "setupFiles": [
