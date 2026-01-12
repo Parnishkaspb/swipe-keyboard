@@ -14,6 +14,35 @@
   </noscript>
   <div id="root">
     <input class="input" />
+    <div style="margin: 10px 0;">
+      <button id="predictBtn" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+        Предсказать слово
+      </button>
+    </div>
+    
+    <!-- Блок для подтверждения предсказания -->
+    <div id="predictionBlock" style="margin: 10px 0; display: none; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+      <div style="margin-bottom: 10px;">
+        <strong>Предсказано:</strong> <span id="predictedWord" style="font-size: 18px; color: #2196F3;"></span>
+      </div>
+      <div>
+        <label>Правильное слово: 
+          <input id="correctWord" type="text" style="padding: 5px; font-size: 16px; width: 200px;" />
+        </label>
+      </div>
+      <div style="margin-top: 10px;">
+        <button id="acceptBtn" style="padding: 8px 16px; font-size: 14px; cursor: pointer; background: #4CAF50; color: white; border: none; border-radius: 3px; margin-right: 5px;">
+          ✓ Принять
+        </button>
+        <button id="correctBtn" style="padding: 8px 16px; font-size: 14px; cursor: pointer; background: #2196F3; color: white; border: none; border-radius: 3px; margin-right: 5px;">
+          ✓ Сохранить исправленное
+        </button>
+        <button id="cancelBtn" style="padding: 8px 16px; font-size: 14px; cursor: pointer; background: #f44336; color: white; border: none; border-radius: 3px;">
+          ✗ Отменить
+        </button>
+      </div>
+    </div>
+    
     <div class="keyboardContainer">
       <div class="simple-keyboard"></div>
     </div>
