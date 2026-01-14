@@ -1,7 +1,10 @@
 let Keyboard = window.SimpleKeyboard.default;
 let swipe = window.SimpleKeyboardSwipe.default;
 
-const API_URL = 'http://localhost:8000/api/v1';
+// API URL - работает и в Docker и локально
+const API_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:8000/api/v1'
+  : `http://${window.location.hostname}:8000/api/v1`;
 
 let keyboard = new Keyboard({
   onChange: input => {}, // Отключаем автоматический ввод
