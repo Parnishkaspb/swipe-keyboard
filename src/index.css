@@ -7,8 +7,12 @@
   top: 0;
   left: 0;
   box-sizing: border-box;
-  z-index: 999;
+  z-index: 1001;
   user-select: none;
+}
+
+.simple-keyboard.hg-theme-default.module-simplekeyboardswipe {
+  position: relative;
 }
 
 .simple-keyboard.hg-theme-default.module-simplekeyboardswipe .hg-button {

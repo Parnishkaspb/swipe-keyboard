@@ -7,14 +7,27 @@ class SimpleKeyboardSwipe {
       module.Canvas = Canvas;
 
       module.init = () => {
-        module.canvasHandler = new module.Canvas();
         module.initVars();
+        module.canvasHandler = new module.Canvas();
+        // Обновляем размеры canvas после применения размеров клавиш
         module.canvasHandler.init(
           keyboard.keyboardDOM,
           module.canvasW,
           module.canvasH
         );
         module.initEvents();
+        module.applyKeyDimensions();
+
+        // Обновляем размеры canvas после применения размеров клавиш
+        setTimeout(() => {
+          if (keyboard.keyboardDOM && module.canvasHandler.canvas) {
+            const keyboardRect = keyboard.keyboardDOM.getBoundingClientRect();
+            module.canvasHandler.canvas.style.width = `${keyboardRect.width}px`;
+            module.canvasHandler.canvas.style.height = `${keyboardRect.height}px`;
+            module.canvasHandler.canvas.width = keyboardRect.width;
+            module.canvasHandler.canvas.height = keyboardRect.height;
+          }
+        }, 150);
       };
 
       module.initVars = () => {
@@ -38,6 +51,55 @@ class SimpleKeyboardSwipe {
         module.currentStroke = []; // Текущий штрих (массив точек)
         module.allStrokes = []; // Все штрихи (массив массивов)
         module.currentStrokeKey = ""; // Ключ для текущего штриха
+
+        // Захардкоженные размеры клавиш
+        module.keyDimensions = {
+          й: { x: 0, y: 15, w: 99, h: 154 },
+          ц: { x: 98, y: 15, w: 99, h: 154 },
+          у: { x: 196, y: 15, w: 100, h: 154 },
+          к: { x: 295, y: 15, w: 99, h: 154 },
+          е: { x: 393, y: 15, w: 99, h: 154 },
+          н: { x: 491, y: 15, w: 99, h: 154 },
+          г: { x: 589, y: 15, w: 99, h: 154 },
+          ш: { x: 687, y: 15, w: 99, h: 154 },
+          щ: { x: 785, y: 15, w: 100, h: 154 },
+          з: { x: 884, y: 15, w: 99, h: 154 },
+          х: { x: 982, y: 15, w: 98, h: 154 },
+          ф: { x: 0, y: 169, w: 99, h: 154 },
+          ы: { x: 98, y: 169, w: 99, h: 154 },
+          в: { x: 196, y: 169, w: 100, h: 154 },
+          а: { x: 295, y: 169, w: 99, h: 154 },
+          п: { x: 393, y: 169, w: 99, h: 154 },
+          р: { x: 491, y: 169, w: 99, h: 154 },
+          о: { x: 589, y: 169, w: 99, h: 154 },
+          л: { x: 687, y: 169, w: 99, h: 154 },
+          д: { x: 785, y: 169, w: 100, h: 154 },
+          ж: { x: 884, y: 169, w: 99, h: 154 },
+          э: { x: 982, y: 169, w: 98, h: 154 },
+          "{shift}": { x: 0, y: 323, w: 120, h: 154 },
+          shift: { x: 0, y: 323, w: 120, h: 154 },
+          я: { x: 119, y: 323, w: 94, h: 154 },
+          ч: { x: 212, y: 323, w: 95, h: 154 },
+          с: { x: 306, y: 323, w: 94, h: 154 },
+          м: { x: 399, y: 323, w: 95, h: 154 },
+          и: { x: 493, y: 323, w: 94, h: 154 },
+          т: { x: 586, y: 323, w: 95, h: 154 },
+          ь: { x: 680, y: 323, w: 94, h: 154 },
+          б: { x: 773, y: 323, w: 95, h: 154 },
+          ю: { x: 867, y: 323, w: 95, h: 154 },
+          "{backspace}": { x: 961, y: 323, w: 119, h: 154 },
+          backspace: { x: 961, y: 323, w: 119, h: 154 },
+          "{capslock}": { x: 0, y: 477, w: 141, h: 154 },
+          toNumberState: { x: 0, y: 477, w: 141, h: 154 },
+          "{globe}": { x: 140, y: 477, w: 120, h: 154 },
+          globe: { x: 140, y: 477, w: 120, h: 154 },
+          ",": { x: 259, y: 477, w: 98, h: 154 },
+          "{space}": { x: 356, y: 477, w: 455, h: 154 },
+          space: { x: 356, y: 477, w: 455, h: 154 },
+          ".": { x: 810, y: 477, w: 98, h: 154 },
+          "{enter}": { x: 907, y: 477, w: 173, h: 154 },
+          enter: { x: 907, y: 477, w: 173, h: 154 }
+        };
       };
 
       module.initEvents = () => {
@@ -171,7 +233,12 @@ class SimpleKeyboardSwipe {
 
         let element = document.elementFromPoint(e.clientX, e.clientY);
         if (element) {
-          let label = element.getAttribute("data-skbtn");
+          // Проверяем наши кастомные клавиши
+          let label = element.getAttribute("data-key-label");
+          if (!label) {
+            // Если не наша клавиша, проверяем оригинальную
+            label = element.getAttribute("data-skbtn");
+          }
           if (label) {
             module.currentStrokeKey = label;
           }
@@ -222,13 +289,170 @@ class SimpleKeyboardSwipe {
         module.currentStrokeKey = "";
       };
 
+      module.applyKeyDimensions = () => {
+        if (!module.keyDimensions) {
+          return;
+        }
+
+        // Используем setTimeout чтобы убедиться, что клавиатура полностью отрендерена
+        setTimeout(() => {
+          // Скрываем все оригинальные кнопки
+          const originalButtons = keyboard.keyboardDOM.querySelectorAll(
+            ".hg-button"
+          );
+          originalButtons.forEach(button => {
+            button.style.setProperty("display", "none", "important");
+          });
+
+          // Получаем все кнопки клавиатуры для получения их содержимого
+          const buttons = keyboard.keyboardDOM.querySelectorAll(".hg-button");
+
+          // Создаем мапу для быстрого поиска кнопок по метке
+          const buttonMap = {};
+          buttons.forEach(button => {
+            const label = button.getAttribute("data-skbtn");
+            if (label) {
+              // Сохраняем кнопку для разных вариантов метки
+              buttonMap[label] = button;
+              const labelWithoutBraces = label.replace(/[{}]/g, "");
+              if (labelWithoutBraces !== label) {
+                buttonMap[labelWithoutBraces] = button;
+              }
+            }
+          });
+
+          // Создаем контейнер для наших клавиш
+          const keysContainer = document.createElement("div");
+          keysContainer.className = "custom-keyboard-keys";
+          keysContainer.style.position = "absolute";
+          keysContainer.style.top = "0";
+          keysContainer.style.left = "0";
+          keysContainer.style.width = "100%";
+          keysContainer.style.height = "100%";
+          keysContainer.style.zIndex = "10";
+
+          // Создаем отдельные элементы для каждой клавиши
+          Object.keys(module.keyDimensions).forEach(label => {
+            const dimensions = module.keyDimensions[label];
+            let originalButton = buttonMap[label];
+
+            // Если не нашли по метке, пробуем найти без фигурных скобок
+            if (!originalButton) {
+              const labelWithoutBraces = label.replace(/[{}]/g, "");
+              originalButton = buttonMap[labelWithoutBraces];
+            }
+
+            if (dimensions) {
+              // Создаем новый элемент клавиши
+              const keyElement = document.createElement("div");
+              keyElement.className = "custom-key";
+              keyElement.setAttribute("data-key-label", label);
+
+              // Применяем захардкоженные размеры и позицию с !important
+              keyElement.style.setProperty("position", "absolute", "important");
+              keyElement.style.setProperty(
+                "left",
+                `${dimensions.x}px`,
+                "important"
+              );
+              keyElement.style.setProperty(
+                "top",
+                `${dimensions.y}px`,
+                "important"
+              );
+              keyElement.style.setProperty(
+                "width",
+                `${dimensions.w}px`,
+                "important"
+              );
+              keyElement.style.setProperty(
+                "height",
+                `${dimensions.h}px`,
+                "important"
+              );
+              keyElement.style.setProperty("margin", "0", "important");
+              keyElement.style.setProperty("margin-top", "0", "important");
+              keyElement.style.setProperty("margin-bottom", "0", "important");
+              keyElement.style.setProperty("margin-left", "0", "important");
+              keyElement.style.setProperty("margin-right", "0", "important");
+              keyElement.style.setProperty("padding", "0", "important");
+              keyElement.style.setProperty("padding-top", "0", "important");
+              keyElement.style.setProperty("padding-bottom", "0", "important");
+              keyElement.style.setProperty("padding-left", "0", "important");
+              keyElement.style.setProperty("padding-right", "0", "important");
+              keyElement.style.setProperty(
+                "box-sizing",
+                "border-box",
+                "important"
+              );
+              keyElement.style.setProperty("border", "none", "important");
+              keyElement.style.setProperty("border-width", "0", "important");
+              keyElement.style.setProperty(
+                "line-height",
+                "normal",
+                "important"
+              );
+              keyElement.style.setProperty(
+                "min-height",
+                `${dimensions.h}px`,
+                "important"
+              );
+              keyElement.style.setProperty(
+                "max-height",
+                `${dimensions.h}px`,
+                "important"
+              );
+
+              // Копируем содержимое и стили из оригинальной кнопки
+              if (originalButton) {
+                keyElement.innerHTML = originalButton.innerHTML;
+                const computedStyle = window.getComputedStyle(originalButton);
+                keyElement.style.background =
+                  computedStyle.background || "#fff";
+                keyElement.style.boxShadow =
+                  computedStyle.boxShadow || "0 0 3px -1px rgba(0, 0, 0, .3)";
+                keyElement.style.display = "flex";
+                keyElement.style.alignItems = "center";
+                keyElement.style.justifyContent = "center";
+                keyElement.style.cursor = "pointer";
+                keyElement.style.fontSize = computedStyle.fontSize || "inherit";
+                keyElement.style.color = computedStyle.color || "inherit";
+                keyElement.style.fontFamily =
+                  computedStyle.fontFamily || "inherit";
+                keyElement.style.fontWeight =
+                  computedStyle.fontWeight || "inherit";
+
+                // Связываем клик с оригинальной кнопкой
+                keyElement.addEventListener("click", () => {
+                  if (originalButton.onclick) {
+                    originalButton.onclick();
+                  } else {
+                    originalButton.click();
+                  }
+                });
+              }
+
+              keysContainer.appendChild(keyElement);
+            }
+          });
+
+          // Добавляем контейнер с клавишами в клавиатуру
+          if (keyboard.keyboardDOM) {
+            keyboard.keyboardDOM.style.position = "relative";
+            keyboard.keyboardDOM.appendChild(keysContainer);
+          }
+        }, 100);
+      };
+
       module.updateCurrentPosition = e => {
-        var rect = module.canvasHandler.canvas.getBoundingClientRect();
+        // Вычисляем координаты относительно клавиатуры, а не canvas
+        // чтобы они совпадали с координатами клавиш
+        var keyboardRect = keyboard.keyboardDOM.getBoundingClientRect();
 
         module.prevX = module.currX;
         module.prevY = module.currY;
-        module.currX = e.clientX - rect.left;
-        module.currY = e.clientY - rect.top;
+        module.currX = e.clientX - keyboardRect.left;
+        module.currY = e.clientY - keyboardRect.top;
 
         module.getMouseDirection(e);
       };
@@ -273,12 +497,33 @@ class SimpleKeyboardSwipe {
         let element = document.elementFromPoint(e.clientX, e.clientY);
 
         if (element) {
-          let label = element.getAttribute("data-skbtn");
+          // Проверяем наши кастомные клавиши
+          let label = element.getAttribute("data-key-label");
+          let button = null;
+
+          if (label) {
+            // Находим оригинальную кнопку
+            const buttons = keyboard.keyboardDOM.querySelectorAll(".hg-button");
+            buttons.forEach(btn => {
+              const btnLabel = btn.getAttribute("data-skbtn");
+              if (
+                btnLabel === label ||
+                btnLabel === label.replace(/[{}]/g, "")
+              ) {
+                button = btn;
+              }
+            });
+          } else {
+            // Если не наша клавиша, проверяем оригинальную
+            label = element.getAttribute("data-skbtn");
+            button = element;
+          }
 
           if (
             label &&
+            button &&
             (module.lastButton !== label || module.isMouseHold) &&
-            element.onclick
+            button.onclick
           ) {
             if (
               module.isMouseHold &&
@@ -287,12 +532,12 @@ class SimpleKeyboardSwipe {
                 label === "{space}")
             ) {
               module.holdInteractionTimeout = setTimeout(() => {
-                element.onclick();
+                button.onclick();
                 module.handleInteraction(e);
               }, 100);
             } else {
               clearTimeout(module.holdInteractionTimeout);
-              element.onclick();
+              button.onclick();
               module.lastButton = label;
 
               let lastButtonTimeout = setTimeout(() => {
