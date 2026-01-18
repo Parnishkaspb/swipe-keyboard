@@ -2,22 +2,37 @@ let Keyboard = window.SimpleKeyboard.default;
 let swipe = window.SimpleKeyboardSwipe.default;
 
 const API_URL = 'http://localhost:8000/api/v1';
+const KEYBOARD_WIDTH = 1080;
+const KEYBOARD_HEIGHT = 631;
 
+// Инициализация клавиатуры с русской раскладкой (только свайп, без обычного ввода)
 let keyboard = new Keyboard({
   onChange: input => {}, // Отключаем автоматический ввод
   onKeyPress: button => {}, // Отключаем обработку нажатий
   useMouseEvents: true,
-  disableButtonHold: true,
   modules: [swipe],
   layout: {
     default: [
       "й ц у к е н г ш щ з х",
       "ф ы в а п р о л д ж э",
       "{shift} я ч с м и т ь б ю {backspace}",
-      "{capslock} {globe} , {space} . {enter}"
+      "{toNumberState} {globe} , {space} . {enter}"
     ]
-  }
+  },
+  display: {
+    "{shift}": "⇧",
+    "{backspace}": "⌫",
+    "{enter}": "↵",
+    "{toNumberState}": "123",
+    "{globe}": "🌐",
+    "{space}": " "
+  },
+  // Дополнительные настройки
+  preventMouseDownDefault: true,
+  preventMouseUpDefault: true
 });
+
+console.log("Keyboard initialized:", keyboard);
 
 let lastSwipeData = null;
 
@@ -34,13 +49,19 @@ async function predictSwipe() {
   const canvasH = swipeModule.canvasH;
   const startTime = lastStroke[0].t;
   
+  // Проверяем размеры canvas
+  if (canvasW !== KEYBOARD_WIDTH || canvasH !== KEYBOARD_HEIGHT) {
+    console.warn(`Canvas size mismatch! Expected ${KEYBOARD_WIDTH}x${KEYBOARD_HEIGHT}, got ${canvasW}x${canvasH}`);
+  }
+  
+  // ОТПРАВЛЯЕМ ПИКСЕЛИ (не нормализуем!)
   const coords = lastStroke.map(p => ({
-    x: p.x / canvasW,
-    y: p.y / canvasH,
+    x: p.x,  // пиксели 0-1080
+    y: p.y,  // пиксели 0-631
     t: (p.t - startTime) / 1000
   }));
   
-  console.log('Sending coords:', coords);
+  console.log('Sending pixel coords:', coords);
   
   const response = await fetch(`${API_URL}/predict`, {
     method: 'POST',
