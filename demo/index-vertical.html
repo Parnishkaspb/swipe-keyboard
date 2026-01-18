@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Swipe Keyboard Demo - Русская клавиатура</title>
+  <title>Swipe Keyboard Demo - Русская клавиатура (Vertical Layout)</title>
   <link rel="stylesheet" href="../node_modules/simple-keyboard/build/css/index.css">
   <link rel="stylesheet" type="text/css" media="screen" href="main.css">
   <style>
@@ -15,30 +15,31 @@
       font-family: Arial, sans-serif;
     }
     
-    /* Основной контейнер: клавиатура + управление рядом */
+    /* Вертикальный layout: клавиатура сверху, управление снизу */
     #root {
       display: flex;
-      gap: 20px;
-      padding: 10px;
+      flex-direction: column;
+      gap: 15px;
+      padding: 0;
     }
     
     /* Контейнер клавиатуры: фиксированный размер, без отступов */
     .keyboardContainer {
-      width: 1080px;
-      height: 631px;
+      width: 1080px !important;
+      height: 631px !important;
       position: relative;
-      flex-shrink: 0;
-      margin: 0;
-      padding: 0;
+      margin: 0 !important;
+      padding: 0 !important;
     }
     
-    /* Панель управления справа */
+    /* Панель управления снизу */
     .controlPanel {
       display: flex;
       flex-direction: column;
-      gap: 15px;
-      min-width: 300px;
-      max-width: 400px;
+      gap: 10px;
+      width: 1080px;
+      padding: 10px;
+      box-sizing: border-box;
     }
     
     .controlPanel input.input {
@@ -51,7 +52,7 @@
     }
     
     .controlPanel button {
-      padding: 12px 20px;
+      padding: 10px 20px;
       font-size: 16px;
       cursor: pointer;
       border: none;
@@ -62,6 +63,7 @@
     #predictBtn {
       background: #2196F3;
       color: white;
+      max-width: 300px;
     }
     
     #predictBtn:hover {
@@ -73,6 +75,7 @@
       background: #f5f5f5;
       border-radius: 5px;
       border: 2px solid #2196F3;
+      max-width: 600px;
     }
     
     #predictionBlock .predicted {
@@ -94,13 +97,13 @@
     
     #predictionBlock .buttons {
       display: flex;
-      flex-direction: column;
       gap: 8px;
     }
     
     #acceptBtn {
       background: #4CAF50;
       color: white;
+      flex: 1;
     }
     
     #acceptBtn:hover {
@@ -110,6 +113,7 @@
     #correctBtn {
       background: #2196F3;
       color: white;
+      flex: 1;
     }
     
     #correctBtn:hover {
@@ -119,6 +123,7 @@
     #cancelBtn {
       background: #f44336;
       color: white;
+      flex: 1;
     }
     
     #cancelBtn:hover {
@@ -172,7 +177,7 @@
       <div class="simple-keyboard"></div>
     </div>
     
-    <!-- Панель управления справа -->
+    <!-- Панель управления снизу -->
     <div class="controlPanel">
       <input class="input" type="text" placeholder="Введите текст свайпом..." autocomplete="off" />
       
@@ -203,3 +208,4 @@
   <script src="main.js"></script>
 </body>
 </html>
+

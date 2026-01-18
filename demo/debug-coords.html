@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Keyboard Coordinates Debugger</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      margin: 20px;
+      background: #f5f5f5;
+    }
+    
+    .debug-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: 0 auto 20px;
+    }
+    
+    h1 {
+      color: #2196F3;
+      margin-top: 0;
+    }
+    
+    .stat {
+      padding: 8px;
+      margin: 5px 0;
+      background: #f9f9f9;
+      border-left: 3px solid #2196F3;
+    }
+    
+    .stat.error {
+      border-left-color: #f44336;
+      background: #ffebee;
+    }
+    
+    .stat.success {
+      border-left-color: #4CAF50;
+      background: #e8f5e9;
+    }
+    
+    button {
+      padding: 10px 20px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    
+    button:hover {
+      background: #1976D2;
+    }
+    
+    #coordsLog {
+      background: #263238;
+      color: #aed581;
+      padding: 15px;
+      border-radius: 4px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="debug-panel">
+    <h1>🔍 Keyboard Coordinates Debugger</h1>
+    
+    <div id="diagnostics">
+      <div class="stat">Проверка...</div>
+    </div>
+    
+    <div>
+      <button onclick="runDiagnostics()">🔄 Перепроверить</button>
+      <button onclick="testCoordinates()">📍 Тест координат клавиш</button>
+      <button onclick="clearLog()">🗑️ Очистить лог</button>
+    </div>
+    
+    <div id="coordsLog"></div>
+  </div>
+  
+  <script>
+    const EXPECTED = {
+      keyboard_width: 1080,
+      keyboard_height: 631,
+      keys: {
+        'й': {x1: 0, y1: 15, x2: 99, y2: 169, cx: 49.5, cy: 92.0},
+        'ц': {x1: 98, y1: 15, x2: 197, y2: 169, cx: 147.5, cy: 92.0},
+        'х': {x1: 982, y1: 15, x2: 1080, y2: 169, cx: 1031.0, cy: 92.0},
+        'space': {x1: 356, y1: 477, x2: 811, y2: 631, cx: 583.5, cy: 554.0}
+      }
+    };
+    
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('coordsLog');
+      const timestamp = new Date().toLocaleTimeString();
+      const color = type === 'error' ? '#ef5350' : type === 'success' ? '#66bb6a' : '#aed581';
+      logDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+    
+    function clearLog() {
+      document.getElementById('coordsLog').innerHTML = '';
+    }
+    
+    function runDiagnostics() {
+      const diagnostics = [];
+      
+      // Проверка 1: Наличие клавиатуры
+      const kb = document.querySelector('.simple-keyboard');
+      if (!kb) {
+        diagnostics.push({
+          type: 'error',
+          message: '❌ Клавиатура не найдена (.simple-keyboard)'
+        });
+        displayDiagnostics(diagnostics);
+        return;
+      }
+      
+      // Проверка 2: Размер клавиатуры
+      const kbWidth = kb.offsetWidth;
+      const kbHeight = kb.offsetHeight;
+      const sizeMatch = kbWidth === EXPECTED.keyboard_width && kbHeight === EXPECTED.keyboard_height;
+      
+      diagnostics.push({
+        type: sizeMatch ? 'success' : 'error',
+        message: `${sizeMatch ? '✅' : '❌'} Размер клавиатуры: ${kbWidth}×${kbHeight} (ожидается ${EXPECTED.keyboard_width}×${EXPECTED.keyboard_height})`
+      });
+      
+      // Проверка 3: Canvas
+      const canvas = document.querySelector('.swipeCanvasElement');
+      if (canvas) {
+        const canvasMatch = canvas.width === EXPECTED.keyboard_width && canvas.height === EXPECTED.keyboard_height;
+        diagnostics.push({
+          type: canvasMatch ? 'success' : 'error',
+          message: `${canvasMatch ? '✅' : '❌'} Canvas: ${canvas.width}×${canvas.height}`
+        });
+      } else {
+        diagnostics.push({
+          type: 'error',
+          message: '❌ Canvas не найден (.swipeCanvasElement)'
+        });
+      }
+      
+      // Проверка 4: Позиция контейнера
+      const container = document.querySelector('.keyboardContainer');
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        diagnostics.push({
+          type: 'success',
+          message: `✅ Позиция контейнера: (${rect.left.toFixed(0)}, ${rect.top.toFixed(0)})`
+        });
+      }
+      
+      // Проверка 5: Кастомные клавиши
+      const customKeys = document.querySelectorAll('.custom-key');
+      if (customKeys.length > 0) {
+        diagnostics.push({
+          type: 'success',
+          message: `✅ Кастомные клавиши: ${customKeys.length} шт`
+        });
+        
+        // Проверка координат нескольких клавиш
+        customKeys.forEach(key => {
+          const label = key.getAttribute('data-key-label');
+          if (EXPECTED.keys[label]) {
+            const rect = key.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            const relX = rect.left - containerRect.left;
+            const relY = rect.top - containerRect.top;
+            const expected = EXPECTED.keys[label];
+            
+            const deltaX = Math.abs(relX - expected.x1);
+            const deltaY = Math.abs(relY - expected.y1);
+            const isGood = deltaX < 2 && deltaY < 2;
+            
+            diagnostics.push({
+              type: isGood ? 'success' : 'error',
+              message: `${isGood ? '✅' : '❌'} Клавиша "${label}": (${relX.toFixed(1)}, ${relY.toFixed(1)}) ожидается (${expected.x1}, ${expected.y1})`
+            });
+          }
+        });
+      } else {
+        diagnostics.push({
+          type: 'error',
+          message: '❌ Кастомные клавиши не найдены'
+        });
+      }
+      
+      displayDiagnostics(diagnostics);
+      log('Диагностика завершена');
+    }
+    
+    function displayDiagnostics(diagnostics) {
+      const container = document.getElementById('diagnostics');
+      container.innerHTML = diagnostics.map(d => 
+        `<div class="stat ${d.type}">${d.message}</div>`
+      ).join('');
+    }
+    
+    function testCoordinates() {
+      log('=== Тест координат клавиш ===', 'success');
+      
+      Object.entries(EXPECTED.keys).forEach(([key, coords]) => {
+        log(`Клавиша "${key}":`, 'info');
+        log(`  Область: (${coords.x1}, ${coords.y1}) → (${coords.x2}, ${coords.y2})`);
+        log(`  Центр: (${coords.cx}, ${coords.cy})`);
+        log(`  Размер: ${coords.x2 - coords.x1}×${coords.y2 - coords.y1}px`);
+      });
+      
+      log('\nДля проверки: сделайте свайп на букву "й" и сравните координаты', 'success');
+    }
+    
+    // Запуск при загрузке
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        runDiagnostics();
+        log('Debugger загружен. Откройте index.html для тестирования.', 'success');
+      }, 500);
+    });
+  </script>
+</body>
+</html>
+

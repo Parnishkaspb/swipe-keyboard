@@ -10,6 +10,7 @@ let keyboard = new Keyboard({
   onChange: input => {}, // Отключаем автоматический ввод
   onKeyPress: button => {}, // Отключаем обработку нажатий
   useMouseEvents: true,
+  disableButtonHold: true,
   modules: [swipe],
   layout: {
     default: [
@@ -27,7 +28,6 @@ let keyboard = new Keyboard({
     "{globe}": "🌐",
     "{space}": " "
   },
-  // Дополнительные настройки
   preventMouseDownDefault: true,
   preventMouseUpDefault: true
 });
@@ -62,6 +62,8 @@ async function predictSwipe() {
   }));
   
   console.log('Sending pixel coords:', coords);
+  console.log(`First point: (${coords[0].x.toFixed(2)}, ${coords[0].y.toFixed(2)})`);
+  console.log(`Last point: (${coords[coords.length-1].x.toFixed(2)}, ${coords[coords.length-1].y.toFixed(2)})`);
   
   const response = await fetch(`${API_URL}/predict`, {
     method: 'POST',
@@ -146,7 +148,7 @@ document.getElementById('cancelBtn').addEventListener('click', () => {
 
 function resetPredictionUI() {
   document.getElementById('predictionBlock').style.display = 'none';
-  document.getElementById('predictBtn').style.display = 'inline-block';
+  document.getElementById('predictBtn').style.display = 'block';
   document.getElementById('correctWord').value = '';
   lastSwipeData = null;
 }

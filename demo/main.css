@@ -1,11 +1,20 @@
-input {
-  width: 95%;
-  font-size: 20px;
-  border: none;
+/* Клавиатура: строго 1080x631px, без отступов и margin */
+.keyboardContainer {
+  width: 1080px !important;
+  height: 631px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative !important;
+  box-sizing: border-box !important;
 }
 
-.keyboardContainer {
-  max-width: 1080px;
+.simple-keyboard {
+  position: relative !important;
+  width: 1080px !important;
+  height: 631px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
 }
 
 /* Убираем все стили, которые могут мешать абсолютному позиционированию */
@@ -42,6 +51,7 @@ input {
   width: 100%;
   height: 100%;
   z-index: 10;
+  pointer-events: none;
 }
 
 .custom-key {
@@ -54,6 +64,8 @@ input {
   cursor: pointer;
   box-sizing: border-box !important;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  pointer-events: auto;
+  user-select: none;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
@@ -62,8 +74,7 @@ input {
   /* Размеры задаются через JavaScript с !important */
 }
 
-.simple-keyboard {
-  position: relative !important;
-  width: 1080px;
-  height: 631px; /* Максимальная высота: 477 + 154 = 631 */
+.custom-key:active {
+  background: #f0f0f0;
+  box-shadow: 0 0 1px -1px rgba(0, 0, 0, .3);
 }
